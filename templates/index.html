@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Manager</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 1rem;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .task-card {
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Task Input</h2>
+    <input type="text" id="taskInput" placeholder="e.g., Complete cleaning room by next Sunday at 8pm" size="50">
+    <button onclick="submitTask()">Add Task</button>
+
+    <div id="results"></div>
+
+    <script>
+        async function submitTask() {
+            const taskText = document.getElementById("taskInput").value;
+            if (!taskText.trim()) return;
+
+            const res = await fetch("/add_entry", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ task: taskText })
+            });
+
+            const data = await res.json();
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = `<h3>Extracted Task Info</h3>`;
+
+            if (Array.isArray(data) && data.length) {
+                data.forEach(entry => {
+                    resultsDiv.innerHTML += `
+                        <div class="task-card">
+                            <strong>Phrase:</strong> ${entry.phrase}<br>
+                            <strong>Date:</strong> ${entry.date}<br>
+                            <strong>Day:</strong> ${entry.day}<br>
+                            ${entry.time ? `<strong>Time:</strong> ${entry.time}<br>` : ""}
+                        </div>
+                    `;
+                });
+            } else {
+                resultsDiv.innerHTML += `<p>No date/time info could be extracted.</p>`;
+            }
+        }
+    </script>
+
+</body>
+</html>
